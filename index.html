@@ -5,12 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
   <title>Check-in de Localização</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
   <style>
     :root {
       --bg: #0f172a;
@@ -23,9 +17,8 @@
       --primary-hover: #059669;
       --secondary: #3b82f6;
       --danger: #ef4444;
-      --warning: #f59e0b;
       --radius: 12px;
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
     }
 
     * {
@@ -38,7 +31,7 @@
     body {
       background-color: var(--bg);
       color: var(--text);
-      min-height: 100dvh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -49,7 +42,7 @@
 
     .container {
       width: 100%;
-      max-width: 480px;
+      max-width: 470px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -58,7 +51,7 @@
     }
 
     header {
-      margin-bottom: 1.4rem;
+      margin-bottom: 1.35rem;
     }
 
     header h1 {
@@ -123,7 +116,6 @@
       align-items: center;
       gap: 0.5rem;
       margin-bottom: 0.75rem;
-      flex-wrap: wrap;
     }
 
     .gps-title {
@@ -134,16 +126,11 @@
       color: var(--text-muted);
     }
 
-    .gps-actions {
-      display: flex;
-      gap: 0.4rem;
-    }
-
     .btn-ghost {
       background: transparent;
       border: 1px solid var(--border);
       color: var(--secondary);
-      padding: 0.3rem 0.6rem;
+      padding: 0.3rem 0.65rem;
       border-radius: 6px;
       font-size: 0.76rem;
       font-weight: 600;
@@ -156,6 +143,40 @@
     }
 
     .btn-ghost:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 0.45rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .search-row input {
+      font-size: 0.82rem;
+      padding: 0.55rem 0.75rem;
+      background: var(--surface);
+    }
+
+    .btn-search {
+      background: var(--surface-hover);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+
+    .btn-search:hover:not(:disabled) {
+      background: #475569;
+    }
+
+    .btn-search:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
@@ -208,13 +229,262 @@
       color: var(--primary);
     }
 
-    .map-picker-wrapper {
+    .map-preview {
       margin-top: 0.75rem;
-      padding-top: 0.75rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .map-preview iframe {
+      display: block;
+      width: 100%;
+      height: 185px;
+      border: 0;
+    }
+
+    .gps-meta {
+      margin-top: 0.65rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .gps-meta a {
+      color: var(--secondary);
+      text-decoration: none;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .gps-meta a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--primary);
+      color: #022c22;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-submit:active:not(:disabled) {
+      transform: scale(0.99);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status-banner {
+      margin-top: 1rem;
+      padding: 0.75rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .status-banner.show {
+      display: block;
+    }
+
+    .status-banner.success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+
+    .status-banner.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    .history {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
       border-top: 1px solid var(--border);
     }
 
-    .map-search-row {
+    .history-header {
       display: flex;
-      gap: 0.4rem;
-      margin-bottom: 0.55rem
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .history-header h2 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .history-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 170px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .history-item small {
+      color: var(--text-muted);
+      display: block;
+      font-size: 0.72rem;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(2, 44, 34, 0.3);
+      border-top-color: #022c22;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>📍 Registro de Local</h1>
+      <p>Capture pelo GPS, busque o endereço ou insira as coordenadas manualmente.</p>
+    </header>
+
+    <form id="checkinForm" novalidate>
+      <div class="form-group">
+        <label for="localInput">Nome / Identificação do Local *</label>
+        <input
+          type="text"
+          id="localInput"
+          name="local"
+          placeholder="Ex: Olézio de Arruda Camargo, Estação 01..."
+          required
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="gps-card">
+        <div class="gps-header">
+          <span class="gps-title">Coordenadas GPS</span>
+          <button type="button" id="refreshGpsBtn" class="btn-ghost">
+            Auto GPS
+          </button>
+        </div>
+
+        <div class="search-row">
+          <input
+            type="text"
+            id="addressSearchInput"
+            placeholder="Buscar rua, bairro ou cidade para pegar GPS..."
+            autocomplete="off"
+          />
+          <button type="button" id="addressSearchBtn" class="btn-search">Buscar</button>
+        </div>
+
+        <div class="smart-paste-box">
+          <input
+            type="text"
+            id="smartPasteInput"
+            placeholder="Ou cole coordenadas (-22.90, -47.06) / link do Google Maps..."
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="coords-grid">
+          <div class="coord-box">
+            <label for="latInput">Latitude *</label>
+            <input
+              type="text"
+              id="latInput"
+              inputmode="decimal"
+              placeholder="-22.905560"
+              autocomplete="off"
+            />
+          </div>
+          <div class="coord-box">
+            <label for="lngInput">Longitude *</label>
+            <input
+              type="text"
+              id="lngInput"
+              inputmode="decimal"
+              placeholder="-47.060830"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="map-preview" id="mapPreviewBox" hidden>
+          <iframe
+            id="mapIframe"
+            title="Prévia da localização no mapa"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+
+        <div class="gps-meta">
+          <span id="gpsStatusText">Busque um endereço ou preencha as coordenadas acima.</span>
+          <a id="mapsLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
+            Abrir no Maps ↗
+          </a>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn-submit" disabled>
+        Enviar Registro
+      </button>
+
+      <div id="statusBanner" class="status-banner" role="alert"></div>
+    </form>
+
+    <section class="history" id="historySection" hidden>
+      <div class="history-header">
+        <h2>Últimos Envios (Local)</h2>
+        <button type="button" id="clearHistoryBtn" class="btn-ghost">Limpar</button>
+      </div>
+      <ul class="history-list" id="historyList"></ul>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      // Configuração do Google Forms
+      const FORM_ID = "1FAIpQLScsyD2VRxpXHtzlpNc04FkaYZcDR38lbdGcJlq8caT-GZ9hVw";
+      const FORM_ENDPOINT = `
