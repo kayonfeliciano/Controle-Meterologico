@@ -1,390 +1,571 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<title>Registro de localização</title>
-<style>
-  :root {
-    --bg: #f4f6fb;
-    --surface: #ffffff;
-    --text: #1b2333;
-    --muted: #5d6a85;
-    --border: #d9dfec;
-    --primary: #2f5bea;
-    --primary-hover: #2449c4;
-    --primary-contrast: #ffffff;
-    --success: #15803d;
-    --success-bg: #e6f6ec;
-    --error: #b42318;
-    --error-bg: #fdecea;
-    --info-bg: #eaf0ff;
-    --radius: 14px;
-    --shadow: 0 6px 24px rgba(27, 35, 51, .08);
-  }
-  @media (prefers-color-scheme: dark) {
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Check-in de Localização</title>
+  <style>
     :root {
-      --bg: #0f1420;
-      --surface: #182033;
-      --text: #e8ecf6;
-      --muted: #9aa6c2;
-      --border: #2a3550;
-      --primary: #6d8cff;
-      --primary-hover: #8aa2ff;
-      --primary-contrast: #0b1020;
-      --success: #5fd38d;
-      --success-bg: #12301f;
-      --error: #ff8d84;
-      --error-bg: #3a1815;
-      --info-bg: #1d2a4d;
-      --shadow: 0 6px 24px rgba(0, 0, 0, .35);
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-hover: #334155;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --secondary: #3b82f6;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius: 12px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
     }
-  }
-  *, *::before, *::after { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.5;
-    min-height: 100vh;
-  }
-  .wrap { width: min(100% - 32px, 760px); margin: 0 auto; padding: 32px 0 56px; }
-  header { margin-bottom: 24px; }
-  h1 { font-size: clamp(1.5rem, 4vw, 2rem); margin: 0 0 6px; letter-spacing: -.02em; }
-  header p { margin: 0; color: var(--muted); }
 
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-  .card h2 { font-size: 1.05rem; margin: 0 0 16px; display: flex; align-items: center; gap: 10px; }
-  .step {
-    display: inline-grid; place-items: center;
-    width: 26px; height: 26px; border-radius: 50%;
-    background: var(--primary); color: var(--primary-contrast);
-    font-size: .85rem; font-weight: 700;
-  }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+    }
 
-  .btn {
-    appearance: none; border: 0; cursor: pointer;
-    font: inherit; font-weight: 600;
-    padding: 12px 20px; border-radius: 10px;
-    background: var(--primary); color: var(--primary-contrast);
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    text-decoration: none;
-    transition: background .15s, transform .05s, opacity .15s;
-  }
-  .btn:hover:not(:disabled) { background: var(--primary-hover); }
-  .btn:active:not(:disabled) { transform: translateY(1px); }
-  .btn:disabled { opacity: .5; cursor: not-allowed; }
-  .btn.secondary { background: transparent; color: var(--primary); border: 1px solid var(--border); }
-  .btn.secondary:hover:not(:disabled) { background: var(--info-bg); }
-  .btn:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
-  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      line-height: 1.5;
+    }
 
-  .status {
-    margin-top: 16px; padding: 12px 14px; border-radius: 10px;
-    font-size: .95rem; display: none; align-items: flex-start; gap: 10px;
-  }
-  .status.show { display: flex; }
-  .status.info { background: var(--info-bg); }
-  .status.ok { background: var(--success-bg); color: var(--success); }
-  .status.err { background: var(--error-bg); color: var(--error); }
-  .spinner {
-    flex: none; width: 16px; height: 16px; margin-top: 4px;
-    border: 2px solid currentColor; border-right-color: transparent;
-    border-radius: 50%; animation: spin .7s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } }
+    .container {
+      width: 100%;
+      max-width: 440px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+    }
 
-  .fields { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin-top: 4px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field.full { grid-column: 1 / -1; }
-  label { font-size: .88rem; font-weight: 600; }
-  input {
-    font: inherit; color: var(--text); background: var(--bg);
-    border: 1px solid var(--border); border-radius: 10px;
-    padding: 11px 12px; width: 100%;
-  }
-  input:focus { border-color: var(--primary); }
-  input[aria-invalid="true"] { border-color: var(--error); }
-  .hint { font-size: .8rem; color: var(--muted); margin: 0; }
-  @media (max-width: 520px) { .fields { grid-template-columns: 1fr; } .card { padding: 18px; } }
+    header {
+      margin-bottom: 1.5rem;
+    }
 
-  #formSection { display: none; }
-  #formSection.show { display: block; }
-  .frame-box { position: relative; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #fff; }
-  iframe { display: block; width: 100%; height: 1100px; border: 0; }
-  @media (max-width: 520px) { iframe { height: 1300px; } }
-  .frame-loading {
-    position: absolute; inset: 0; display: grid; place-items: center;
-    background: var(--surface); color: var(--muted); gap: 10px; text-align: center;
-  }
-  .frame-loading.hide { display: none; }
-  footer { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 8px; }
-  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-</style>
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+
+    .gps-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .gps-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+    }
+
+    .gps-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--secondary);
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      background: rgba(59, 130, 246, 0.12);
+    }
+
+    .btn-ghost:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .coords-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+
+    .coord-box {
+      background: var(--surface);
+      padding: 0.55rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .coord-box span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .coord-box strong {
+      font-size: 0.88rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+
+    .gps-meta {
+      margin-top: 0.6rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .gps-meta a {
+      color: var(--secondary);
+      text-decoration: none;
+    }
+
+    .gps-meta a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--primary);
+      color: #022c22;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-submit:active:not(:disabled) {
+      transform: scale(0.99);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status-banner {
+      margin-top: 1rem;
+      padding: 0.75rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .status-banner.show {
+      display: block;
+    }
+
+    .status-banner.success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+
+    .status-banner.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    .history {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .history-header h2 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .history-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .history-item small {
+      color: var(--text-muted);
+      display: block;
+      font-size: 0.72rem;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(2, 44, 34, 0.3);
+      border-top-color: #022c22;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-<main class="wrap">
-  <header>
-    <h1>Registro de localização</h1>
-    <p>Capture sua posição, confira os dados e envie pelo formulário já preenchido.</p>
-  </header>
+  <main class="container">
+    <header>
+      <h1>📍 Registro de Local</h1>
+      <p>Capture suas coordenadas GPS e envie diretamente para a planilha.</p>
+    </header>
 
-  <section class="card" aria-labelledby="t1">
-    <h2 id="t1"><span class="step">1</span> Obter localização</h2>
-    <div class="actions">
-      <button type="button" class="btn" id="btnLocate">
-        <span aria-hidden="true">📍</span> Usar minha localização
+    <form id="checkinForm" novalidate>
+      <div class="form-group">
+        <label for="localInput">Nome / Identificação do Local *</label>
+        <input
+          type="text"
+          id="localInput"
+          name="local"
+          placeholder="Ex: Escritório Central, Cliente X, Obra 02..."
+          required
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="gps-card">
+        <div class="gps-header">
+          <span class="gps-title">Coordenadas GPS</span>
+          <button type="button" id="refreshGpsBtn" class="btn-ghost">
+            Atualizar GPS
+          </button>
+        </div>
+
+        <div class="coords-grid">
+          <div class="coord-box">
+            <span>Latitude</span>
+            <strong id="latDisplay">--</strong>
+          </div>
+          <div class="coord-box">
+            <span>Longitude</span>
+            <strong id="lngDisplay">--</strong>
+          </div>
+        </div>
+
+        <div class="gps-meta">
+          <span id="gpsStatusText">Aguardando leitura do satélite...</span>
+          <a id="mapsLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
+            Ver no Mapa ↗
+          </a>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn-submit" disabled>
+        Enviar Registro
       </button>
-    </div>
-    <div id="status" class="status" role="status" aria-live="polite"></div>
-  </section>
 
-  <section class="card" aria-labelledby="t2">
-    <h2 id="t2"><span class="step">2</span> Confira os dados</h2>
-    <div class="fields">
-      <div class="field full">
-        <label for="local">Local</label>
-        <input id="local" name="local" type="text" autocomplete="off" placeholder="Ex.: Rua Exemplo, 123 – Bairro, Cidade">
-        <p class="hint">Preenchido automaticamente quando possível. Você pode editar.</p>
+      <div id="statusBanner" class="status-banner" role="alert"></div>
+    </form>
+
+    <section class="history" id="historySection" hidden>
+      <div class="history-header">
+        <h2>Últimos Envios (Local)</h2>
+        <button type="button" id="clearHistoryBtn" class="btn-ghost">Limpar</button>
       </div>
-      <div class="field">
-        <label for="lat">Latitude</label>
-        <input id="lat" name="lat" type="text" inputmode="decimal" autocomplete="off" placeholder="-22.905600">
-      </div>
-      <div class="field">
-        <label for="lon">Longitude</label>
-        <input id="lon" name="lon" type="text" inputmode="decimal" autocomplete="off" placeholder="-47.060800">
-      </div>
-      <p class="hint full" id="accuracy" style="grid-column:1/-1"></p>
-    </div>
-    <div class="actions" style="margin-top:18px">
-      <button type="button" class="btn" id="btnOpen" disabled>Abrir formulário preenchido</button>
-      <a class="btn secondary" id="linkNew" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true" tabindex="-1">Abrir em nova aba ↗</a>
-    </div>
-  </section>
+      <ul class="history-list" id="historyList"></ul>
+    </section>
+  </main>
 
-  <section class="card" id="formSection" aria-labelledby="t3">
-    <h2 id="t3"><span class="step">3</span> Formulário</h2>
-    <div class="frame-box">
-      <div class="frame-loading" id="frameLoading">
-        <div><div class="spinner" style="margin:0 auto 8px"></div>Carregando formulário…</div>
-      </div>
-      <iframe id="formFrame" title="Formulário do Google" loading="lazy"></iframe>
-    </div>
-  </section>
+  <script>
+    (() => {
+      // Configuração do Google Forms
+      const FORM_ID = "1FAIpQLScsyD2VRxpXHtzlpNc04FkaYZcDR38lbdGcJlq8caT-GZ9hVw";
+      const FORM_ENDPOINT = `https://docs.google.com/forms/d/e/${FORM_ID}/formResponse`;
 
-  <footer>Sua localização é usada apenas para preencher o formulário e não é armazenada por esta página.</footer>
-</main>
+      const ENTRY_IDS = {
+        local: "entry.721624271",
+        latitude: "entry.1045105061",
+        longitude: "entry.1204447761"
+      };
 
-<script>
-(function () {
-  'use strict';
+      const STORAGE_KEY = "geo_checkin_history_v1";
 
-  // ---- Configuração do formulário ----
-  const FORM_BASE = 'https://docs.google.com/forms/d/e/1FAIpQLScsyD2VRxpXHtzlpNc04FkaYZcDR38lbdGcJlq8caT-GZ9hVw/viewform';
-  const ENTRY = {
-    local: 'entry.721624271',
-    lat:   'entry.1045105061',
-    lon:   'entry.1204447761'
-  };
+      // Elementos do DOM
+      const form = document.getElementById("checkinForm");
+      const localInput = document.getElementById("localInput");
+      const latDisplay = document.getElementById("latDisplay");
+      const lngDisplay = document.getElementById("lngDisplay");
+      const gpsStatusText = document.getElementById("gpsStatusText");
+      const mapsLink = document.getElementById("mapsLink");
+      const refreshGpsBtn = document.getElementById("refreshGpsBtn");
+      const submitBtn = document.getElementById("submitBtn");
+      const statusBanner = document.getElementById("statusBanner");
+      const historySection = document.getElementById("historySection");
+      const historyList = document.getElementById("historyList");
+      const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 
-  // ---- Elementos ----
-  const $ = (id) => document.getElementById(id);
-  const el = {
-    btnLocate: $('btnLocate'), btnOpen: $('btnOpen'), linkNew: $('linkNew'),
-    status: $('status'), local: $('local'), lat: $('lat'), lon: $('lon'),
-    accuracy: $('accuracy'), section: $('formSection'),
-    frame: $('formFrame'), loading: $('frameLoading')
-  };
+      // Estado da aplicação
+      let currentCoords = {
+        latitude: null,
+        longitude: null
+      };
 
-  let geoRequestId = 0;
-
-  // ---- Utilidades ----
-  function setStatus(type, msg, spinner) {
-    el.status.className = 'status show ' + type;
-    el.status.innerHTML = '';
-    if (spinner) {
-      const s = document.createElement('span');
-      s.className = 'spinner';
-      s.setAttribute('aria-hidden', 'true');
-      el.status.appendChild(s);
-    }
-    const t = document.createElement('span');
-    t.textContent = msg;
-    el.status.appendChild(t);
-  }
-
-  function parseCoord(value, min, max) {
-    const n = parseFloat(String(value).trim().replace(',', '.'));
-    return Number.isFinite(n) && n >= min && n <= max ? n : null;
-  }
-
-  function readCoords() {
-    return {
-      lat: parseCoord(el.lat.value, -90, 90),
-      lon: parseCoord(el.lon.value, -180, 180)
-    };
-  }
-
-  function buildUrl(embedded) {
-    const { lat, lon } = readCoords();
-    const p = new URLSearchParams();
-    if (embedded) p.set('embedded', 'true');
-    p.set('usp', 'pp_url');
-    p.set(ENTRY.local, el.local.value.trim());
-    p.set(ENTRY.lat, lat === null ? '' : String(lat));
-    p.set(ENTRY.lon, lon === null ? '' : String(lon));
-    return FORM_BASE + '?' + p.toString();
-  }
-
-  function refreshState() {
-    const { lat, lon } = readCoords();
-    const latFilled = el.lat.value.trim() !== '';
-    const lonFilled = el.lon.value.trim() !== '';
-    el.lat.setAttribute('aria-invalid', latFilled && lat === null ? 'true' : 'false');
-    el.lon.setAttribute('aria-invalid', lonFilled && lon === null ? 'true' : 'false');
-
-    const valid = lat !== null && lon !== null;
-    el.btnOpen.disabled = !valid;
-    if (valid) {
-      el.linkNew.href = buildUrl(false);
-      el.linkNew.removeAttribute('aria-disabled');
-      el.linkNew.removeAttribute('tabindex');
-      el.linkNew.style.pointerEvents = '';
-      el.linkNew.style.opacity = '';
-    } else {
-      el.linkNew.href = '#';
-      el.linkNew.setAttribute('aria-disabled', 'true');
-      el.linkNew.setAttribute('tabindex', '-1');
-      el.linkNew.style.pointerEvents = 'none';
-      el.linkNew.style.opacity = '.5';
-    }
-    // Se o formulário já está aberto, mantém sincronizado com os campos.
-    if (valid && el.section.classList.contains('show') && el.frame.dataset.loaded) {
-      el.btnOpen.textContent = 'Atualizar formulário';
-    }
-  }
-
-  // ---- Geocodificação reversa (OpenStreetMap / Nominatim) ----
-  async function reverseGeocode(lat, lon, reqId) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
-    try {
-      const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1' +
-                  '&accept-language=pt-BR&lat=' + lat + '&lon=' + lon;
-      const res = await fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      if (reqId !== geoRequestId) return null; // resposta obsoleta
-      const a = data.address || {};
-      const street = a.road || a.pedestrian || a.footway || '';
-      const number = a.house_number ? ', ' + a.house_number : '';
-      const district = a.suburb || a.neighbourhood || a.quarter || '';
-      const city = a.city || a.town || a.village || a.municipality || '';
-      const state = a.state || '';
-      const parts = [street ? street + number : '', district, city, state].filter(Boolean);
-      return parts.length ? parts.join(' – ') : (data.display_name || null);
-    } catch (e) {
-      return null;
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  // ---- Geolocalização ----
-  function geoErrorMessage(err) {
-    switch (err.code) {
-      case 1: return 'Permissão negada. Libere o acesso à localização no navegador ou preencha os campos manualmente.';
-      case 2: return 'Não foi possível determinar sua posição. Verifique o GPS/conexão ou preencha manualmente.';
-      case 3: return 'Tempo esgotado ao obter a localização. Tente novamente.';
-      default: return 'Erro ao obter a localização. Preencha manualmente.';
-    }
-  }
-
-  function locate() {
-    if (!('geolocation' in navigator)) {
-      setStatus('err', 'Seu navegador não suporta geolocalização. Preencha os campos manualmente.');
-      return;
-    }
-    const reqId = ++geoRequestId;
-    el.btnLocate.disabled = true;
-    setStatus('info', 'Obtendo sua localização…', true);
-
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      if (reqId !== geoRequestId) return;
-      const lat = pos.coords.latitude.toFixed(6);
-      const lon = pos.coords.longitude.toFixed(6);
-      el.lat.value = lat;
-      el.lon.value = lon;
-      el.accuracy.textContent = Number.isFinite(pos.coords.accuracy)
-        ? 'Precisão aproximada: ±' + Math.round(pos.coords.accuracy) + ' m'
-        : '';
-      refreshState();
-      setStatus('info', 'Coordenadas obtidas. Buscando o endereço…', true);
-
-      const address = await reverseGeocode(lat, lon, reqId);
-      if (reqId !== geoRequestId) return;
-      el.btnLocate.disabled = false;
-      if (address) {
-        el.local.value = address;
-        setStatus('ok', 'Localização obtida com sucesso. Confira os dados abaixo.');
-      } else {
-        setStatus('ok', 'Coordenadas obtidas, mas não foi possível identificar o endereço. Preencha o campo "Local".');
-        el.local.focus();
+      function updateSubmitState() {
+        const hasLocal = localInput.value.trim().length > 0;
+        const hasCoords = currentCoords.latitude !== null && currentCoords.longitude !== null;
+        submitBtn.disabled = !(hasLocal && hasCoords);
       }
-      refreshState();
-    }, (err) => {
-      if (reqId !== geoRequestId) return;
-      el.btnLocate.disabled = false;
-      setStatus('err', geoErrorMessage(err));
-    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
-  }
 
-  // ---- Formulário ----
-  function openForm() {
-    const { lat, lon } = readCoords();
-    if (lat === null || lon === null) return;
-    el.loading.classList.remove('hide');
-    el.frame.onload = () => el.loading.classList.add('hide');
-    el.frame.src = buildUrl(true);
-    el.frame.dataset.loaded = '1';
-    el.section.classList.add('show');
-    el.section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    el.btnOpen.textContent = 'Atualizar formulário';
-  }
+      function showBanner(message, type) {
+        statusBanner.textContent = message;
+        statusBanner.className = `status-banner show ${type}`;
+      }
 
-  // ---- Eventos ----
-  el.btnLocate.addEventListener('click', locate);
-  el.btnOpen.addEventListener('click', openForm);
-  ['input', 'change'].forEach((evt) => {
-    el.local.addEventListener(evt, refreshState);
-    el.lat.addEventListener(evt, refreshState);
-    el.lon.addEventListener(evt, refreshState);
-  });
-  el.linkNew.addEventListener('click', (e) => {
-    if (el.linkNew.getAttribute('aria-disabled') === 'true') e.preventDefault();
-  });
+      function hideBanner() {
+        statusBanner.className = "status-banner";
+      }
 
-  // Se a permissão já foi concedida antes, busca automaticamente.
-  if (navigator.permissions && navigator.permissions.query) {
-    navigator.permissions.query({ name: 'geolocation' }).then((r) => {
-      if (r.state === 'granted') locate();
-    }).catch(() => {});
-  }
+      function captureGPS() {
+        if (!("geolocation" in navigator)) {
+          gpsStatusText.textContent = "Geolocalização não suportada neste navegador.";
+          return;
+        }
 
-  refreshState();
-})();
-</script>
+        refreshGpsBtn.disabled = true;
+        gpsStatusText.textContent = "Obtendo localização precisa...";
+        mapsLink.hidden = true;
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude, accuracy } = position.coords;
+
+            // 6 casas decimais garantem precisão de ~11 centímetros
+            currentCoords.latitude = latitude.toFixed(6);
+            currentCoords.longitude = longitude.toFixed(6);
+
+            latDisplay.textContent = currentCoords.latitude;
+            lngDisplay.textContent = currentCoords.longitude;
+            gpsStatusText.textContent = `Precisão: ~${Math.round(accuracy)}m`;
+
+            mapsLink.href = `https://www.google.com/maps?q=${currentCoords.latitude},${currentCoords.longitude}`;
+            mapsLink.hidden = false;
+
+            refreshGpsBtn.disabled = false;
+            updateSubmitState();
+          },
+          (error) => {
+            refreshGpsBtn.disabled = false;
+            currentCoords = { latitude: null, longitude: null };
+            latDisplay.textContent = "--";
+            lngDisplay.textContent = "--";
+            updateSubmitState();
+
+            const errorMessages = {
+              1: "Permissão de GPS negada. Libere o acesso nas configurações do navegador.",
+              2: "Sinal de GPS indisponível no momento.",
+              3: "Tempo esgotado ao buscar localização. Tente novamente."
+            };
+            gpsStatusText.textContent = errorMessages[error.code] || "Erro ao capturar GPS.";
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 12000,
+            maximumAge: 0
+          }
+        );
+      }
+
+      function renderHistory() {
+        const items = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        if (items.length === 0) {
+          historySection.hidden = true;
+          return;
+        }
+
+        historySection.hidden = false;
+        historyList.innerHTML = items
+          .map(
+            (item) => `
+            <li class="history-item">
+              <div>
+                <strong>${escapeHTML(item.local)}</strong>
+                <small>${item.latitude}, ${item.longitude} • ${item.timestamp}</small>
+              </div>
+              <a href="https://www.google.com/maps?q=${item.latitude},${item.longitude}" target="_blank" rel="noopener noreferrer" style="color: var(--secondary); text-decoration: none; font-size: 0.75rem;">Mapa</a>
+            </li>
+          `
+          )
+          .join("");
+      }
+
+      function saveToHistory(record) {
+        const items = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        items.unshift(record);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items.slice(0, 10)));
+        renderHistory();
+      }
+
+      function escapeHTML(str) {
+        return str.replace(/[&<>"']/g, (tag) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;"
+        }[tag]));
+      }
+
+      async function handleFormSubmit(event) {
+        event.preventDefault();
+        hideBanner();
+
+        const localName = localInput.value.trim();
+        if (!localName || !currentCoords.latitude || !currentCoords.longitude) return;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span class="spinner"></span> Enviando...`;
+
+        const payload = new URLSearchParams();
+        payload.append(ENTRY_IDS.local, localName);
+        payload.append(ENTRY_IDS.latitude, currentCoords.latitude);
+        payload.append(ENTRY_IDS.longitude, currentCoords.longitude);
+
+        try {
+          // O modo 'no-cors' permite o envio silencioso ao Google Forms sem erro de CORS
+          await fetch(FORM_ENDPOINT, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: payload.toString()
+          });
+
+          const now = new Date().toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+
+          saveToHistory({
+            local: localName,
+            latitude: currentCoords.latitude,
+            longitude: currentCoords.longitude,
+            timestamp: now
+          });
+
+          showBanner(`Check-in "${localName}" registrado com sucesso!`, "success");
+          localInput.value = "";
+        } catch (err) {
+          showBanner("Falha de rede ao enviar. Verifique sua conexão e tente novamente.", "error");
+        } finally {
+          submitBtn.innerHTML = "Enviar Registro";
+          updateSubmitState();
+        }
+      }
+
+      // Event Listeners
+      localInput.addEventListener("input", updateSubmitState);
+      refreshGpsBtn.addEventListener("click", captureGPS);
+      form.addEventListener("submit", handleFormSubmit);
+      clearHistoryBtn.addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        renderHistory();
+      });
+
+      // Inicialização
+      renderHistory();
+      captureGPS();
+    })();
+  </script>
 </body>
 </html>
