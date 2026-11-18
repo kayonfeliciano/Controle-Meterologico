@@ -175,11 +175,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 0.5rem;
     }
 
     .gps-meta a {
       color: var(--secondary);
       text-decoration: none;
+      white-space: nowrap;
     }
 
     .gps-meta a:hover {
@@ -341,7 +343,7 @@
         </div>
 
         <div class="gps-meta">
-          <span id="gpsStatusText">Aguardando leitura do satélite...</span>
+          <span id="gpsStatusText">Aguardando leitura de localização...</span>
           <a id="mapsLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
             Ver no Mapa ↗
           </a>
@@ -413,7 +415,13 @@
         statusBanner.className = "status-banner";
       }
 
-      function captureGPS() {
+      function getPositionPromise(options) {
+        return new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, options);
+        });
+      }
+
+      async function captureGPS() {
         if (!("geolocation" in navigator)) {
           gpsStatusText.textContent = "Geolocalização não suportada neste navegador.";
           return;
@@ -423,44 +431,58 @@
         gpsStatusText.textContent = "Obtendo localização precisa...";
         mapsLink.hidden = true;
 
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude, accuracy } = position.coords;
+        try {
+          let position;
+          let modeLabel = "GPS preciso";
 
-            // 6 casas decimais garantem precisão de ~11 centímetros
-            currentCoords.latitude = latitude.toFixed(6);
-            currentCoords.longitude = longitude.toFixed(6);
+          try {
+            // 1ª tentativa: Alta precisão (ideal para celular em área aberta)
+            position = await getPositionPromise({
+              enableHighAccuracy: true,
+              timeout: 8000,
+              maximumAge: 0
+            });
+          } catch (err) {
+            // Se a permissão foi negada (código 1), interrompe imediatamente
+            if (err.code === 1) throw err;
 
-            latDisplay.textContent = currentCoords.latitude;
-            lngDisplay.textContent = currentCoords.longitude;
-            gpsStatusText.textContent = `Precisão: ~${Math.round(accuracy)}m`;
-
-            mapsLink.href = `https://www.google.com/maps?q=${currentCoords.latitude},${currentCoords.longitude}`;
-            mapsLink.hidden = false;
-
-            refreshGpsBtn.disabled = false;
-            updateSubmitState();
-          },
-          (error) => {
-            refreshGpsBtn.disabled = false;
-            currentCoords = { latitude: null, longitude: null };
-            latDisplay.textContent = "--";
-            lngDisplay.textContent = "--";
-            updateSubmitState();
-
-            const errorMessages = {
-              1: "Permissão de GPS negada. Libere o acesso nas configurações do navegador.",
-              2: "Sinal de GPS indisponível no momento.",
-              3: "Tempo esgotado ao buscar localização. Tente novamente."
-            };
-            gpsStatusText.textContent = errorMessages[error.code] || "Erro ao capturar GPS.";
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 12000,
-            maximumAge: 0
+            // 2ª tentativa (Fallback): Rede / Wi-Fi (funciona no PC e ambientes fechados)
+            gpsStatusText.textContent = "Buscando via rede/Wi-Fi...";
+            modeLabel = "Rede/Wi-Fi";
+            position = await getPositionPromise({
+              enableHighAccuracy: false,
+              timeout: 10000,
+              maximumAge: 30000
+            });
           }
-        );
+
+          const { latitude, longitude, accuracy } = position.coords;
+
+          // 6 casas decimais garantem precisão de ~11 centímetros
+          currentCoords.latitude = latitude.toFixed(6);
+          currentCoords.longitude = longitude.toFixed(6);
+
+          latDisplay.textContent = currentCoords.latitude;
+          lngDisplay.textContent = currentCoords.longitude;
+          gpsStatusText.textContent = `Precisão: ~${Math.round(accuracy)}m (${modeLabel})`;
+
+          mapsLink.href = `https://www.google.com/maps?q=${currentCoords.latitude},${currentCoords.longitude}`;
+          mapsLink.hidden = false;
+        } catch (error) {
+          currentCoords = { latitude: null, longitude: null };
+          latDisplay.textContent = "--";
+          lngDisplay.textContent = "--";
+
+          const errorMessages = {
+            1: "Permissão negada. Libere a localização no ícone de cadeado da barra de endereço.",
+            2: "Localização indisponível. Verifique se o serviço de localização do sistema está ativo.",
+            3: "Tempo esgotado mesmo via rede. Verifique a localização do sistema operacional."
+          };
+          gpsStatusText.textContent = errorMessages[error.code] || "Erro ao capturar localização.";
+        } finally {
+          refreshGpsBtn.disabled = false;
+          updateSubmitState();
+        }
       }
 
       function renderHistory() {
