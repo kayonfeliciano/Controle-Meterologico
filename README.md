@@ -1,1 +1,1 @@
-# Controle-Meteorol-gico
+# Controle-Meteorolgico
