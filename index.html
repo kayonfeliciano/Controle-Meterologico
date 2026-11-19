@@ -1,462 +1,236 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Check-in de Localização</title>
   <style>
     :root {
       --bg: #0f172a;
       --surface: #1e293b;
-      --surface-alt: #0b1220;
-      --surface-hover: #334155;
+      --surface-hover: #273549;
       --border: #334155;
       --text: #f8fafc;
       --text-muted: #94a3b8;
-      --primary: #10b981;
-      --primary-hover: #059669;
-      --secondary: #3b82f6;
-      --danger: #ef4444;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success-bg: rgba(16, 185, 129, 0.14);
+      --success-border: #10b981;
+      --success-text: #6ee7b7;
+      --warn-bg: rgba(245, 158, 11, 0.14);
+      --warn-border: #f59e0b;
+      --warn-text: #fcd34d;
+      --error-bg: rgba(239, 68, 68, 0.14);
+      --error-border: #ef4444;
+      --error-text: #fca5a5;
       --radius: 12px;
-      --shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.5);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
     }
 
     body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1.25rem;
+      padding: 20px;
       line-height: 1.5;
     }
 
-    .container {
+    .card {
       width: 100%;
-      max-width: 500px;
-      background: var(--surface);
+      max-width: 480px;
+      background-color: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.75rem;
-      box-shadow: var(--shadow);
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
     }
 
-    header {
-      margin-bottom: 1.35rem;
+    .header {
+      margin-bottom: 22px;
     }
 
-    header h1 {
-      font-size: 1.35rem;
+    .header h1 {
+      font-size: 1.4rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      margin-bottom: 4px;
     }
 
-    header p {
+    .header p {
+      font-size: 0.9rem;
       color: var(--text-muted);
-      font-size: 0.875rem;
-      margin-top: 0.25rem;
+    }
+
+    .gps-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background-color: var(--bg);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: var(--surface-hover);
+      border-color: #475569;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #ffffff;
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--primary-hover);
     }
 
     .form-group {
-      margin-bottom: 1.15rem;
+      margin-bottom: 16px;
+    }
+
+    .coords-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 440px) {
+      .coords-grid {
+        grid-template-columns: 1fr;
+      }
+      .card {
+        padding: 20px;
+      }
     }
 
     label {
       display: block;
       font-size: 0.85rem;
       font-weight: 600;
-      margin-bottom: 0.4rem;
       color: var(--text);
+      margin-bottom: 6px;
     }
 
-    input[type="text"] {
+    input {
       width: 100%;
-      padding: 0.72rem 0.85rem;
-      background: var(--surface-alt);
-      border: 1px solid var(--border);
+      padding: 11px 13px;
       border-radius: 8px;
+      border: 1px solid var(--border);
+      background-color: var(--bg);
       color: var(--text);
-      font-size: 0.92rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    input[type="text"]:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-    }
-
-    input[type="text"].invalid {
-      border-color: var(--danger);
-    }
-
-    .gps-card {
-      background: var(--surface-alt);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.95rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .gps-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .gps-title {
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-    }
-
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--secondary);
-      padding: 0.32rem 0.65rem;
-      border-radius: 6px;
-      font-size: 0.76rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .btn-ghost:hover:not(:disabled) {
-      background: rgba(59, 130, 246, 0.14);
-    }
-
-    .btn-ghost:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .search-row {
-      display: flex;
-      gap: 0.45rem;
-      margin-bottom: 0.55rem;
-    }
-
-    .search-row input {
-      font-size: 0.85rem;
-      padding: 0.6rem 0.75rem;
-      background: var(--surface);
-    }
-
-    .btn-search {
-      background: var(--secondary);
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      padding: 0 0.9rem;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: opacity 0.2s;
-    }
-
-    .btn-search:hover:not(:disabled) {
-      opacity: 0.9;
-    }
-
-    .btn-search:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .search-results {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      margin-bottom: 0.7rem;
-      max-height: 185px;
-      overflow-y: auto;
-    }
-
-    .search-results[hidden] {
-      display: none;
-    }
-
-    .result-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 0.55rem 0.75rem;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-    }
-
-    .result-item:hover {
-      border-color: var(--primary);
-      background: var(--surface-hover);
-    }
-
-    .result-item strong {
-      display: block;
-      font-size: 0.83rem;
-      color: var(--text);
-    }
-
-    .result-item span {
-      display: block;
-      font-size: 0.74rem;
-      color: var(--text-muted);
-      margin-top: 0.1rem;
-    }
-
-    .result-item code {
-      display: inline-block;
-      margin-top: 0.25rem;
-      font-size: 0.72rem;
-      color: var(--primary);
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    }
-
-    .smart-paste-box {
-      margin-bottom: 0.7rem;
-    }
-
-    .smart-paste-box input {
-      font-size: 0.8rem;
-      padding: 0.5rem 0.75rem;
-      background: var(--surface);
-    }
-
-    .coords-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.6rem;
-    }
-
-    .coord-box {
-      background: var(--surface);
-      padding: 0.5rem 0.65rem;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-    }
-
-    .coord-box label {
-      display: block;
-      font-size: 0.7rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      margin-bottom: 0.2rem;
-    }
-
-    .coord-box input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      padding: 0;
-      color: var(--text);
-      font-size: 0.9rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .coord-box input:focus {
-      outline: none;
-      box-shadow: none;
-      color: var(--primary);
-    }
-
-    .map-container {
-      margin-top: 0.75rem;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background: var(--surface);
-    }
-
-    #interactiveMap {
-      width: 100%;
-      height: 200px;
-      display: none;
-    }
-
-    #fallbackMapFrame {
-      width: 100%;
-      height: 190px;
-      border: 0;
-      display: none;
-    }
-
-    .map-hint {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      padding: 0.4rem 0.6rem;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      display: none;
-    }
-
-    .gps-meta {
-      margin-top: 0.65rem;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .gps-meta a {
-      color: var(--secondary);
-      text-decoration: none;
-      white-space: nowrap;
-      font-weight: 600;
-    }
-
-    .gps-meta a:hover {
-      text-decoration: underline;
-    }
-
-    .btn-submit {
-      width: 100%;
-      padding: 0.88rem;
-      background: var(--primary);
-      color: #022c22;
-      border: none;
-      border-radius: 8px;
       font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    input::placeholder {
+      color: #64748b;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    .map-preview {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: background 0.2s, transform 0.1s;
+      justify-content: flex-end;
+      margin-top: -6px;
+      margin-bottom: 16px;
+      min-height: 20px;
     }
 
-    .btn-submit:hover:not(:disabled) {
-      background: var(--primary-hover);
-    }
-
-    .btn-submit:active:not(:disabled) {
-      transform: scale(0.99);
-    }
-
-    .btn-submit:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .status-banner {
-      margin-top: 1rem;
-      padding: 0.75rem 0.9rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
+    .map-link {
+      font-size: 0.82rem;
+      color: #60a5fa;
+      text-decoration: none;
       display: none;
     }
 
-    .status-banner.show {
-      display: block;
+    .map-link.visible {
+      display: inline-block;
     }
 
-    .status-banner.success {
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      color: #6ee7b7;
-    }
-
-    .status-banner.error {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.4);
-      color: #fca5a5;
-    }
-
-    .history {
-      margin-top: 1.5rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--border);
-    }
-
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
-    }
-
-    .history-header h2 {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text-muted);
-    }
-
-    .history-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      max-height: 180px;
-      overflow-y: auto;
-    }
-
-    .history-item {
-      background: var(--surface-alt);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.55rem 0.75rem;
-      font-size: 0.8rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .history-item small {
-      color: var(--text-muted);
-      display: block;
-      font-size: 0.72rem;
-    }
-
-    .history-actions {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    .btn-link {
-      background: none;
-      border: none;
-      color: var(--primary);
-      font-size: 0.74rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-link:hover {
+    .map-link:hover {
       text-decoration: underline;
+    }
+
+    .status {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      margin-bottom: 18px;
+      border: 1px solid transparent;
+    }
+
+    .status.visible {
+      display: block;
+    }
+
+    .status.info {
+      background-color: var(--warn-bg);
+      border-color: var(--warn-border);
+      color: var(--warn-text);
+    }
+
+    .status.success {
+      background-color: var(--success-bg);
+      border-color: var(--success-border);
+      color: var(--success-text);
+    }
+
+    .status.error {
+      background-color: var(--error-bg);
+      border-color: var(--error-border);
+      color: var(--error-text);
     }
 
     .spinner {
       width: 16px;
       height: 16px;
-      border: 2px solid rgba(2, 44, 34, 0.3);
-      border-top-color: #022c22;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .btn.loading .spinner {
+      display: inline-block;
     }
 
     @keyframes spin {
@@ -465,156 +239,132 @@
   </style>
 </head>
 <body>
-  <main class="container">
-    <header>
-      <h1>📍 Registro de Local</h1>
-      <p>Pesquise um endereço para buscar as coordenadas GPS ou use sua localização atual.</p>
+  <main class="card">
+    <header class="header">
+      <h1>Registro de Localização</h1>
+      <p>Capture o GPS automaticamente ou preencha os campos manualmente.</p>
     </header>
 
-    <form id="checkinForm" novalidate>
+    <div id="statusBox" class="status" role="status" aria-live="polite"></div>
+
+    <div class="gps-bar">
+      <button type="button" id="btnGps" class="btn btn-secondary">
+        <span class="spinner" id="gpsSpinner"></span>
+        <span id="gpsBtnText">Capturar GPS agora</span>
+      </button>
+    </div>
+
+    <form id="locationForm" novalidate>
       <div class="form-group">
-        <label for="localInput">Nome / Identificação do Local *</label>
+        <label for="localInput">Local *</label>
         <input
           type="text"
           id="localInput"
-          name="local"
-          placeholder="Ex: Olézio de Arruda Camargo, Ponto 01..."
-          required
+          name="entry.721624271"
+          placeholder="Ex: Unidade Centro, Cliente, Ponto de Apoio"
           autocomplete="off"
-        />
+          required
+        >
       </div>
 
-      <div class="gps-card">
-        <div class="gps-header">
-          <span class="gps-title">Localizador &amp; Coordenadas GPS</span>
-          <button type="button" id="myGpsBtn" class="btn-ghost">
-            Meu GPS Atual
-          </button>
-        </div>
-
-        <div class="search-row">
+      <div class="coords-grid">
+        <div class="form-group">
+          <label for="latInput">Latitude *</label>
           <input
             type="text"
-            id="placeSearchInput"
-            placeholder="Digite rua, bairro, CEP ou cidade para buscar GPS..."
-            autocomplete="off"
-          />
-          <button type="button" id="placeSearchBtn" class="btn-search">Buscar GPS</button>
+            id="latInput"
+            name="entry.1045105061"
+            inputmode="decimal"
+            placeholder="-22.909938"
+            required
+          >
         </div>
 
-        <ul class="search-results" id="searchResultsList" hidden></ul>
-
-        <div class="smart-paste-box">
+        <div class="form-group">
+          <label for="lngInput">Longitude *</label>
           <input
             type="text"
-            id="smartPasteInput"
-            placeholder="Ou cole coordenadas (-22.90, -47.06) / link do Google Maps..."
-            autocomplete="off"
-          />
-        </div>
-
-        <div class="coords-grid">
-          <div class="coord-box">
-            <label for="latInput">Latitude *</label>
-            <input
-              type="text"
-              id="latInput"
-              inputmode="decimal"
-              placeholder="-22.905560"
-              autocomplete="off"
-            />
-          </div>
-          <div class="coord-box">
-            <label for="lngInput">Longitude *</label>
-            <input
-              type="text"
-              id="lngInput"
-              inputmode="decimal"
-              placeholder="-47.060830"
-              autocomplete="off"
-            />
-          </div>
-        </div>
-
-        <div class="map-container" id="mapContainer" hidden>
-          <div id="interactiveMap"></div>
-          <iframe
-            id="fallbackMapFrame"
-            title="Visualização do ponto GPS no mapa"
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-          ></iframe>
-          <div class="map-hint" id="mapHint">
-            Clique em qualquer ponto do mapa ou arraste o marcador para ajustar o GPS.
-          </div>
-        </div>
-
-        <div class="gps-meta">
-          <span id="gpsStatusText">Pesquise um local acima para obter as coordenadas.</span>
-          <a id="mapsLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
-            Google Maps ↗
-          </a>
+            id="lngInput"
+            name="entry.1204447761"
+            inputmode="decimal"
+            placeholder="-47.062633"
+            required
+          >
         </div>
       </div>
 
-      <button type="submit" id="submitBtn" class="btn-submit" disabled>
-        Enviar Registro
+      <div class="map-preview">
+        <a id="mapLink" class="map-link" href="#" target="_blank" rel="noopener noreferrer">
+          Conferir coordenadas no Google Maps ↗
+        </a>
+      </div>
+
+      <button type="submit" id="btnSubmit" class="btn btn-primary">
+        <span class="spinner" id="submitSpinner"></span>
+        <span id="submitBtnText">Enviar Informações</span>
       </button>
-
-      <div id="statusBanner" class="status-banner" role="alert"></div>
     </form>
-
-    <section class="history" id="historySection" hidden>
-      <div class="history-header">
-        <h2>Últimos Envios (Local)</h2>
-        <button type="button" id="clearHistoryBtn" class="btn-ghost">Limpar</button>
-      </div>
-      <ul class="history-list" id="historyList"></ul>
-    </section>
   </main>
 
   <script>
     (() => {
-      // Configuração do Google Forms
-      const FORM_ID = "1FAIpQLScsyD2VRxpXHtzlpNc04FkaYZcDR38lbdGcJlq8caT-GZ9hVw";
-      const FORM_ENDPOINT = `https://docs.google.com/forms/d/e/${FORM_ID}/formResponse`;
+      const GOOGLE_FORM_URL =
+        "https://docs.google.com/forms/d/e/1FAIpQLScsyD2VRxpXHtzlpNc04FkaYZcDR38lbdGcJlq8caT-GZ9hVw/formResponse";
 
-      const ENTRY_IDS = {
+      const ENTRIES = {
         local: "entry.721624271",
         latitude: "entry.1045105061",
         longitude: "entry.1204447761"
       };
 
-      const STORAGE_KEY = "geo_checkin_history_v1";
-
-      // Elementos do DOM
-      const form = document.getElementById("checkinForm");
+      const form = document.getElementById("locationForm");
       const localInput = document.getElementById("localInput");
-      const placeSearchInput = document.getElementById("placeSearchInput");
-      const placeSearchBtn = document.getElementById("placeSearchBtn");
-      const searchResultsList = document.getElementById("searchResultsList");
-      const smartPasteInput = document.getElementById("smartPasteInput");
       const latInput = document.getElementById("latInput");
       const lngInput = document.getElementById("lngInput");
-      const mapContainer = document.getElementById("mapContainer");
-      const interactiveMapEl = document.getElementById("interactiveMap");
-      const fallbackMapFrame = document.getElementById("fallbackMapFrame");
-      const mapHint = document.getElementById("mapHint");
-      const gpsStatusText = document.getElementById("gpsStatusText");
-      const mapsLink = document.getElementById("mapsLink");
-      const myGpsBtn = document.getElementById("myGpsBtn");
-      const submitBtn = document.getElementById("submitBtn");
-      const statusBanner = document.getElementById("statusBanner");
-      const historySection = document.getElementById("historySection");
-      const historyList = document.getElementById("historyList");
-      const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+      const btnGps = document.getElementById("btnGps");
+      const gpsBtnText = document.getElementById("gpsBtnText");
+      const btnSubmit = document.getElementById("btnSubmit");
+      const submitBtnText = document.getElementById("submitBtnText");
+      const statusBox = document.getElementById("statusBox");
+      const mapLink = document.getElementById("mapLink");
 
-      // Estado do mapa
-      let leafletMap = null;
-      let leafletMarker = null;
-      let leafletReady = false;
-      let lastIframeKey = "";
+      function showStatus(message, type = "info") {
+        statusBox.textContent = message;
+        statusBox.className = `status visible ${type}`;
+      }
 
-      function parseCoord(value, min, max) {
-        if (!value) return null;
-        const normalized = value.trim().replace(",",
+      function hideStatus() {
+        statusBox.className = "status";
+        statusBox.textContent = "";
+      }
+
+      function parseCoordinate(raw) {
+        if (!raw) return NaN;
+        const normalized = String(raw).trim().replace(",", ".");
+        return Number(normalized);
+      }
+
+      function isValidCoords(lat, lng) {
+        return (
+          Number.isFinite(lat) &&
+          Number.isFinite(lng) &&
+          lat >= -90 &&
+          lat <= 90 &&
+          lng >= -180 &&
+          lng <= 180
+        );
+      }
+
+      function updateMapPreview() {
+        const lat = parseCoordinate(latInput.value);
+        const lng = parseCoordinate(lngInput.value);
+
+        if (isValidCoords(lat, lng)) {
+          mapLink.href = `https://www.google.com/maps?q=${lat},${lng}`;
+          mapLink.classList.add("visible");
+        } else {
+          mapLink.classList.remove("visible");
+        }
+      }
+
+      function getPosition
