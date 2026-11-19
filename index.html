@@ -9,6 +9,7 @@
     :root {
       --bg: #0f172a;
       --surface: #1e293b;
+      --surface-alt: #0b1220;
       --surface-hover: #334155;
       --border: #334155;
       --text: #f8fafc;
@@ -18,7 +19,7 @@
       --secondary: #3b82f6;
       --danger: #ef4444;
       --radius: 12px;
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
+      --shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.5);
     }
 
     * {
@@ -42,7 +43,7 @@
 
     .container {
       width: 100%;
-      max-width: 470px;
+      max-width: 500px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -84,7 +85,7 @@
     input[type="text"] {
       width: 100%;
       padding: 0.72rem 0.85rem;
-      background: var(--bg);
+      background: var(--surface-alt);
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--text);
@@ -103,10 +104,10 @@
     }
 
     .gps-card {
-      background: var(--bg);
+      background: var(--surface-alt);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.9rem;
+      border-radius: 10px;
+      padding: 0.95rem;
       margin-bottom: 1.25rem;
     }
 
@@ -119,10 +120,10 @@
     }
 
     .gps-title {
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.78rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
       color: var(--text-muted);
     }
 
@@ -130,7 +131,7 @@
       background: transparent;
       border: 1px solid var(--border);
       color: var(--secondary);
-      padding: 0.3rem 0.65rem;
+      padding: 0.32rem 0.65rem;
       border-radius: 6px;
       font-size: 0.76rem;
       font-weight: 600;
@@ -139,7 +140,7 @@
     }
 
     .btn-ghost:hover:not(:disabled) {
-      background: rgba(59, 130, 246, 0.12);
+      background: rgba(59, 130, 246, 0.14);
     }
 
     .btn-ghost:disabled {
@@ -150,30 +151,30 @@
     .search-row {
       display: flex;
       gap: 0.45rem;
-      margin-bottom: 0.65rem;
+      margin-bottom: 0.55rem;
     }
 
     .search-row input {
-      font-size: 0.82rem;
-      padding: 0.55rem 0.75rem;
+      font-size: 0.85rem;
+      padding: 0.6rem 0.75rem;
       background: var(--surface);
     }
 
     .btn-search {
-      background: var(--surface-hover);
-      color: var(--text);
-      border: 1px solid var(--border);
+      background: var(--secondary);
+      color: #ffffff;
+      border: none;
       border-radius: 8px;
-      padding: 0 0.85rem;
-      font-size: 0.8rem;
+      padding: 0 0.9rem;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
-      transition: background 0.2s;
+      transition: opacity 0.2s;
     }
 
     .btn-search:hover:not(:disabled) {
-      background: #475569;
+      opacity: 0.9;
     }
 
     .btn-search:disabled {
@@ -181,13 +182,62 @@
       cursor: not-allowed;
     }
 
+    .search-results {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 0.7rem;
+      max-height: 185px;
+      overflow-y: auto;
+    }
+
+    .search-results[hidden] {
+      display: none;
+    }
+
+    .result-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0.55rem 0.75rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .result-item:hover {
+      border-color: var(--primary);
+      background: var(--surface-hover);
+    }
+
+    .result-item strong {
+      display: block;
+      font-size: 0.83rem;
+      color: var(--text);
+    }
+
+    .result-item span {
+      display: block;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-top: 0.1rem;
+    }
+
+    .result-item code {
+      display: inline-block;
+      margin-top: 0.25rem;
+      font-size: 0.72rem;
+      color: var(--primary);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
     .smart-paste-box {
       margin-bottom: 0.7rem;
     }
 
     .smart-paste-box input {
-      font-size: 0.82rem;
-      padding: 0.55rem 0.75rem;
+      font-size: 0.8rem;
+      padding: 0.5rem 0.75rem;
       background: var(--surface);
     }
 
@@ -229,7 +279,7 @@
       color: var(--primary);
     }
 
-    .map-preview {
+    .map-container {
       margin-top: 0.75rem;
       border-radius: 8px;
       overflow: hidden;
@@ -237,11 +287,26 @@
       background: var(--surface);
     }
 
-    .map-preview iframe {
-      display: block;
+    #interactiveMap {
       width: 100%;
-      height: 185px;
+      height: 200px;
+      display: none;
+    }
+
+    #fallbackMapFrame {
+      width: 100%;
+      height: 190px;
       border: 0;
+      display: none;
+    }
+
+    .map-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      padding: 0.4rem 0.6rem;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: none;
     }
 
     .gps-meta {
@@ -267,7 +332,7 @@
 
     .btn-submit {
       width: 100%;
-      padding: 0.85rem;
+      padding: 0.88rem;
       background: var(--primary);
       color: #022c22;
       border: none;
@@ -333,7 +398,7 @@
     }
 
     .history-header h2 {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: var(--text-muted);
@@ -344,12 +409,12 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      max-height: 170px;
+      max-height: 180px;
       overflow-y: auto;
     }
 
     .history-item {
-      background: var(--bg);
+      background: var(--surface-alt);
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 0.55rem 0.75rem;
@@ -364,6 +429,25 @@
       color: var(--text-muted);
       display: block;
       font-size: 0.72rem;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-link:hover {
+      text-decoration: underline;
     }
 
     .spinner {
@@ -384,7 +468,7 @@
   <main class="container">
     <header>
       <h1>📍 Registro de Local</h1>
-      <p>Capture pelo GPS, busque o endereço ou insira as coordenadas manualmente.</p>
+      <p>Pesquise um endereço para buscar as coordenadas GPS ou use sua localização atual.</p>
     </header>
 
     <form id="checkinForm" novalidate>
@@ -394,7 +478,7 @@
           type="text"
           id="localInput"
           name="local"
-          placeholder="Ex: Olézio de Arruda Camargo, Estação 01..."
+          placeholder="Ex: Olézio de Arruda Camargo, Ponto 01..."
           required
           autocomplete="off"
         />
@@ -402,21 +486,23 @@
 
       <div class="gps-card">
         <div class="gps-header">
-          <span class="gps-title">Coordenadas GPS</span>
-          <button type="button" id="refreshGpsBtn" class="btn-ghost">
-            Auto GPS
+          <span class="gps-title">Localizador &amp; Coordenadas GPS</span>
+          <button type="button" id="myGpsBtn" class="btn-ghost">
+            Meu GPS Atual
           </button>
         </div>
 
         <div class="search-row">
           <input
             type="text"
-            id="addressSearchInput"
-            placeholder="Buscar rua, bairro ou cidade para pegar GPS..."
+            id="placeSearchInput"
+            placeholder="Digite rua, bairro, CEP ou cidade para buscar GPS..."
             autocomplete="off"
           />
-          <button type="button" id="addressSearchBtn" class="btn-search">Buscar</button>
+          <button type="button" id="placeSearchBtn" class="btn-search">Buscar GPS</button>
         </div>
+
+        <ul class="search-results" id="searchResultsList" hidden></ul>
 
         <div class="smart-paste-box">
           <input
@@ -450,19 +536,23 @@
           </div>
         </div>
 
-        <div class="map-preview" id="mapPreviewBox" hidden>
+        <div class="map-container" id="mapContainer" hidden>
+          <div id="interactiveMap"></div>
           <iframe
-            id="mapIframe"
-            title="Prévia da localização no mapa"
+            id="fallbackMapFrame"
+            title="Visualização do ponto GPS no mapa"
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
           ></iframe>
+          <div class="map-hint" id="mapHint">
+            Clique em qualquer ponto do mapa ou arraste o marcador para ajustar o GPS.
+          </div>
         </div>
 
         <div class="gps-meta">
-          <span id="gpsStatusText">Busque um endereço ou preencha as coordenadas acima.</span>
+          <span id="gpsStatusText">Pesquise um local acima para obter as coordenadas.</span>
           <a id="mapsLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
-            Abrir no Maps ↗
+            Google Maps ↗
           </a>
         </div>
       </div>
@@ -487,4 +577,44 @@
     (() => {
       // Configuração do Google Forms
       const FORM_ID = "1FAIpQLScsyD2VRxpXHtzlpNc04FkaYZcDR38lbdGcJlq8caT-GZ9hVw";
-      const FORM_ENDPOINT = `
+      const FORM_ENDPOINT = `https://docs.google.com/forms/d/e/${FORM_ID}/formResponse`;
+
+      const ENTRY_IDS = {
+        local: "entry.721624271",
+        latitude: "entry.1045105061",
+        longitude: "entry.1204447761"
+      };
+
+      const STORAGE_KEY = "geo_checkin_history_v1";
+
+      // Elementos do DOM
+      const form = document.getElementById("checkinForm");
+      const localInput = document.getElementById("localInput");
+      const placeSearchInput = document.getElementById("placeSearchInput");
+      const placeSearchBtn = document.getElementById("placeSearchBtn");
+      const searchResultsList = document.getElementById("searchResultsList");
+      const smartPasteInput = document.getElementById("smartPasteInput");
+      const latInput = document.getElementById("latInput");
+      const lngInput = document.getElementById("lngInput");
+      const mapContainer = document.getElementById("mapContainer");
+      const interactiveMapEl = document.getElementById("interactiveMap");
+      const fallbackMapFrame = document.getElementById("fallbackMapFrame");
+      const mapHint = document.getElementById("mapHint");
+      const gpsStatusText = document.getElementById("gpsStatusText");
+      const mapsLink = document.getElementById("mapsLink");
+      const myGpsBtn = document.getElementById("myGpsBtn");
+      const submitBtn = document.getElementById("submitBtn");
+      const statusBanner = document.getElementById("statusBanner");
+      const historySection = document.getElementById("historySection");
+      const historyList = document.getElementById("historyList");
+      const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+
+      // Estado do mapa
+      let leafletMap = null;
+      let leafletMarker = null;
+      let leafletReady = false;
+      let lastIframeKey = "";
+
+      function parseCoord(value, min, max) {
+        if (!value) return null;
+        const normalized = value.trim().replace(",",
