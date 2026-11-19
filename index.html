@@ -165,27 +165,35 @@
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
     }
 
-    .map-preview {
+    .helper-links {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-top: -6px;
       margin-bottom: 16px;
       min-height: 20px;
     }
 
-    .map-link {
-      font-size: 0.82rem;
+    .helper-link {
+      font-size: 0.8rem;
       color: #60a5fa;
       text-decoration: none;
       display: none;
     }
 
-    .map-link.visible {
+    .helper-link.visible {
       display: inline-block;
     }
 
-    .map-link:hover {
+    .helper-link:hover {
       text-decoration: underline;
+    }
+
+    .helper-link.muted {
+      color: var(--text-muted);
+      display: inline-block;
     }
 
     .status {
@@ -254,7 +262,19 @@
       </button>
     </div>
 
-    <form id="locationForm" novalidate>
+    <!-- Iframe oculto recebe a resposta nativa do Google Forms sem redirecionar a página -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" title="Envio Google Forms"></iframe>
+
+    <form
+      id="locationForm"
+      action="https://docs.google.com/forms/d/e/1FAIpQLScsyD2VRxpXHtzlpNc04FkaYZcDR38lbdGcJlq8caT-GZ9hVw/formResponse"
+      method="POST"
+      target="hidden_iframe"
+      novalidate
+    >
+      <input type="hidden" name="fvv" value="1">
+      <input type="hidden" name="pageHistory" value="0">
+
       <div class="form-group">
         <label for="localInput">Local *</label>
         <input
@@ -293,9 +313,12 @@
         </div>
       </div>
 
-      <div class="map-preview">
-        <a id="mapLink" class="map-link" href="#" target="_blank" rel="noopener noreferrer">
-          Conferir coordenadas no Google Maps ↗
+      <div class="helper-links">
+        <a id="mapLink" class="helper-link" href="#" target="_blank" rel="noopener noreferrer">
+          Ver no Google Maps ↗
+        </a>
+        <a id="directFormLink" class="helper-link muted" href="#" target="_blank" rel="noopener noreferrer">
+          Abrir no Forms (teste) ↗
         </a>
       </div>
 
@@ -308,16 +331,11 @@
 
   <script>
     (() => {
-      const GOOGLE_FORM_URL =
-        "https://docs.google.com/forms/d/e/1FAIpQLScsyD2VRxpXHtzlpNc04FkaYZcDR38lbdGcJlq8caT-GZ9hVw/formResponse";
-
-      const ENTRIES = {
-        local: "entry.721624271",
-        latitude: "entry.1045105061",
-        longitude: "entry.1204447761"
-      };
+      const VIEWFORM_BASE =
+        "https://docs.google.com/forms/d/e/1FAIpQLScsyD2VRxpXHtzlpNc04FkaYZcDR38lbdGcJlq8caT-GZ9hVw/viewform?usp=pp_url";
 
       const form = document.getElementById("locationForm");
+      const hiddenIframe = document.getElementById("hidden_iframe");
       const localInput = document.getElementById("localInput");
       const latInput = document.getElementById("latInput");
       const lngInput = document.getElementById("lngInput");
@@ -327,6 +345,10 @@
       const submitBtnText = document.getElementById("submitBtnText");
       const statusBox = document.getElementById("statusBox");
       const mapLink = document.getElementById("mapLink");
+      const directFormLink = document.getElementById("directFormLink");
+
+      let isSubmitting = false;
+      let submitTimer = null;
 
       function showStatus(message, type = "info") {
         statusBox.textContent = message;
@@ -355,7 +377,7 @@
         );
       }
 
-      function updateMapPreview() {
+      function updateHelperLinks() {
         const lat = parseCoordinate(latInput.value);
         const lng = parseCoordinate(lngInput.value);
 
@@ -365,6 +387,135 @@
         } else {
           mapLink.classList.remove("visible");
         }
+
+        const params = new URLSearchParams();
+        if (localInput.value.trim()) params.set("entry.721624271", localInput.value.trim());
+        if (Number.isFinite(lat)) params.set("entry.1045105061", String(lat));
+        if (Number.isFinite(lng)) params.set("entry.1204447761", String(lng));
+
+        const query = params.toString();
+        directFormLink.href = query ? `${VIEWFORM_BASE}&${query}` : VIEWFORM_BASE;
       }
 
-      function getPosition
+      function getPositionPromise(options) {
+        return new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, options);
+        });
+      }
+
+      async function captureGPS() {
+        if (!("geolocation" in navigator)) {
+          showStatus("Seu navegador não suporta geolocalização. Preencha os campos manualmente.", "info");
+          return;
+        }
+
+        btnGps.disabled = true;
+        btnGps.classList.add("loading");
+        gpsBtnText.textContent = "Obtendo coordenadas...";
+        hideStatus();
+
+        try {
+          let position;
+          try {
+            position = await getPositionPromise({
+              enableHighAccuracy: true,
+              timeout: 8000,
+              maximumAge: 30000
+            });
+          } catch (firstErr) {
+            if (firstErr.code === 3 || firstErr.code === 2) {
+              position = await getPositionPromise({
+                enableHighAccuracy: false,
+                timeout: 10000,
+                maximumAge: 60000
+              });
+            } else {
+              throw firstErr;
+            }
+          }
+
+          latInput.value = position.coords.latitude.toFixed(6);
+          lngInput.value = position.coords.longitude.toFixed(6);
+          updateHelperLinks();
+          showStatus("Coordenadas preenchidas com sucesso. Informe o nome do local e envie.", "success");
+          localInput.focus();
+        } catch (err) {
+          let msg = "Não foi possível capturar o GPS automaticamente. Preencha os campos manualmente.";
+          if (err && err.code === 1) {
+            msg = "Permissão de localização negada. Libere no navegador ou digite as coordenadas manualmente.";
+          }
+          showStatus(msg, "info");
+        } finally {
+          btnGps.disabled = false;
+          btnGps.classList.remove("loading");
+          gpsBtnText.textContent = "Capturar GPS agora";
+        }
+      }
+
+      function finishSubmission() {
+        if (!isSubmitting) return;
+        isSubmitting = false;
+        clearTimeout(submitTimer);
+
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove("loading");
+        submitBtnText.textContent = "Enviar Informações";
+
+        showStatus("Informações enviadas ao Google Forms!", "success");
+        localInput.value = "";
+        latInput.value = "";
+        lngInput.value = "";
+        updateHelperLinks();
+      }
+
+      hiddenIframe.addEventListener("load", finishSubmission);
+
+      btnGps.addEventListener("click", captureGPS);
+      localInput.addEventListener("input", updateHelperLinks);
+      latInput.addEventListener("input", updateHelperLinks);
+      lngInput.addEventListener("input", updateHelperLinks);
+
+      form.addEventListener("submit", (event) => {
+        hideStatus();
+
+        const localValue = localInput.value.trim();
+        const latValue = parseCoordinate(latInput.value);
+        const lngValue = parseCoordinate(lngInput.value);
+
+        if (!localValue) {
+          event.preventDefault();
+          showStatus("Preencha o campo Local antes de enviar.", "error");
+          localInput.focus();
+          return;
+        }
+
+        if (!isValidCoords(latValue, lngValue)) {
+          event.preventDefault();
+          showStatus("Informe valores válidos para Latitude (-90 a 90) e Longitude (-180 a 180).", "error");
+          latInput.focus();
+          return;
+        }
+
+        // Normaliza vírgula para ponto antes do envio nativo do formulário
+        localInput.value = localValue;
+        latInput.value = String(latValue);
+        lngInput.value = String(lngValue);
+
+        isSubmitting = true;
+        setTimeout(() => {
+          btnSubmit.disabled = true;
+          btnSubmit.classList.add("loading");
+          submitBtnText.textContent = "Enviando...";
+        }, 0);
+
+        submitTimer = setTimeout(finishSubmission, 2000);
+      });
+
+      window.addEventListener("DOMContentLoaded", () => {
+        updateHelperLinks();
+        captureGPS();
+      });
+    })();
+  </script>
+</body>
+</html>
